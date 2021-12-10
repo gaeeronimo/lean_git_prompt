@@ -4,21 +4,21 @@
 export PROMPT_COMMAND="__simple_set_prompt"
 
 # Configuration
-PS1_SHOW_LONG_CWD=
-PS1_SHOW_DIRTYSTATE=
-PS1_SHOW_UPSTREAM=1
+LEAN_PS1_SHOW_LONG_CWD=
+LEAN_PS1_SHOW_DIRTYSTATE=
+LEAN_PS1_SHOW_UPSTREAM=1
 
-PS1_SEGMENT_CHAR=""
-PS1_PROMPT_CHAR=""
-PS1_GIT_CHAR=""
+LEAN_PS1_SEGMENT_CHAR=""
+LEAN_PS1_PROMPT_CHAR=""
+LEAN_PS1_GIT_CHAR=""
 
-PS1_USERINFO_COLOR="B W"
-PS1_SYSTEM_COLOR="M Bl"
-PS1_VENV_COLOR="C Bl"
-PS1_CWD_COLOR="Y Bl"
-PS1_GIT_DEFAULT_COLOR="B Bl"
-PS1_GIT_CLEAN_COLOR="G Bl"
-PS1_GIT_DIRTY_COLOR="R Bl"
+LEAN_PS1_USERINFO_COLOR="B W"
+LEAN_PS1_SYSTEM_COLOR="M Bl"
+LEAN_PS1_VENV_COLOR="C Bl"
+LEAN_PS1_CWD_COLOR="Y Bl"
+LEAN_PS1_GIT_DEFAULT_COLOR="B Bl"
+LEAN_PS1_GIT_CLEAN_COLOR="G Bl"
+LEAN_PS1_GIT_DIRTY_COLOR="R Bl"
 
 # Declare colormaps for background and foreground colors
 declare -A COLMAP_BG=( [Bl]=40 [R]=41 [G]=42 [Y]=43 [B]=44 [M]=45 [C]=46 [W]=47 [_]=49 )
@@ -38,7 +38,7 @@ function __pl_seg {
   # Saved color, start new segment with SEGMENT_CHAR, use old BG as FG
   if [[ -n "${last_segment}" ]]; then
     local c_last=${COLMAP_FG[$last_segment]}
-    PS1="$PS1\[\e[0;${c_bg};${c_last}m\]${PS1_SEGMENT_CHAR}"
+    PS1="$PS1\[\e[0;${c_bg};${c_last}m\]${LEAN_PS1_SEGMENT_CHAR}"
   fi
 
   # Set color and add text to PS1
@@ -68,29 +68,29 @@ function __simple_set_prompt {
     
     # User information when not local
     [[ -n "${SSH_CLIENT}" ]] &&
-       __pl_seg ${PS1_USERINFO_COLOR} " \u@\h "
+       __pl_seg ${LEAN_PS1_USERINFO_COLOR} " \u@\h "
 
     # Show $MSYSTEM when not default
     [[ -n "${MSYSTEM}" ]] &&
     [[ "${MSYSTEM}" != "MINGW64" ]] &&
-      __pl_seg ${PS1_SYSTEM_COLOR} " ${MSYSTEM} "
+      __pl_seg ${LEAN_PS1_SYSTEM_COLOR} " ${MSYSTEM} "
     
     # Python virtual environment
     [[ -n "${VIRTUAL_ENV_PROMPT}" ]] &&
-      __pl_seg ${PS1_VENV_COLOR} " ${VIRTUAL_ENV_PROMPT} "
+      __pl_seg ${LEAN_PS1_VENV_COLOR} " ${VIRTUAL_ENV_PROMPT} "
     
     # Current working directory
-    [[ -n "${PS1_SHOW_LONG_CWD}" ]] &&
-      __pl_seg ${PS1_CWD_COLOR} " \w " || __pl_seg ${PS1_CWD_COLOR} " `__abbrev_cwd` "
+    [[ -n "${LEAN_PS1_SHOW_LONG_CWD}" ]] &&
+      __pl_seg ${LEAN_PS1_CWD_COLOR} " \w " || __pl_seg ${LEAN_PS1_CWD_COLOR} " `__abbrev_cwd` "
     
     # GIT information
     if [[ -n "$git_branch" ]]; then
-        local color="${PS1_GIT_DEFAULT_COLOR}"
-        if [[ -n "$PS1_SHOW_DIRTYSTATE" ]]; then
-            git diff --quiet && color=${PS1_GIT_CLEAN_COLOR} || color=${PS1_DIRTY_COLOR}
+        local color="${LEAN_PS1_GIT_DEFAULT_COLOR}"
+        if [[ -n "$LEAN_PS1_SHOW_DIRTYSTATE" ]]; then
+            git diff --quiet && color=${LEAN_PS1_GIT_CLEAN_COLOR} || color=${PS1_DIRTY_COLOR}
         fi
-        local git_info=" ${PS1_GIT_CHAR} $git_branch"
-        if [[ -n "${PS1_SHOW_UPSTREAM}" ]]; then
+        local git_info=" ${LEAN_PS1_GIT_CHAR} $git_branch"
+        if [[ -n "${LEAN_PS1_SHOW_UPSTREAM}" ]]; then
           local upstream_branch=$(git rev-parse --abbrev-ref "@{upstream}" 2> /dev/null)
           [[ -n "$upstream_branch" ]] && git_info="$git_info ➦ $upstream_branch"
         fi
@@ -98,7 +98,7 @@ function __simple_set_prompt {
     fi
 
     # Finally the prompt
-    __pl_seg _ _  " \n${PS1_PROMPT_CHAR} "
+    __pl_seg _ _  " \n${LEAN_PS1_PROMPT_CHAR} "
 }
 
 function __abbrev_cwd {
