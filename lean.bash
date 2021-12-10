@@ -51,13 +51,8 @@ function __simple_set_prompt {
     # Save exit code - must be first statement
     local ex=$?
 
-    # Get information about our GIT branch
-    local git_branch=$(git rev-parse --abbrev-ref HEAD 2> /dev/null)
-    [[ "$git_branch" == "HEAD" ]] && git_branch=$(git rev-parse --short HEAD 2>/dev/null)
-
     # Save last segment color 
     local last_segment=''
-
 
     # Set terminal title
     PS1="\[\033]0;${TITLEPREFIX}:\w\007\]\n"
@@ -84,17 +79,40 @@ function __simple_set_prompt {
       __pl_seg ${LEAN_PS1_CWD_COLOR} " \w " || __pl_seg ${LEAN_PS1_CWD_COLOR} " `__abbrev_cwd` "
     
     # GIT information
-    if [[ -n "$git_branch" ]]; then
+    readarray -t git_info <<< `git rev-parse --git-dir --is-inside-git-dir --is-bare-repository --is-inside-work-tree --abbrev-ref HEAD`
+
+    local git_dir="${git_info[0]}"
+    local git_inside_gd="${git_info[1]}"
+    local git_bare="${git_info[2]}"
+    local git_inside_wt="${git_info[3]}"
+    local git_branch="${git_info[4]}"
+
+	  if [[ "$git_inside_gd" == "true" ]]; then
+        # GIT, but not inside worktree => Let __git_ps1 do the job
+			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+	  elif [[ "$git_inside_wt" == "true" ]]; then
+
+      # Rebase or merge in progress, let __git_ps1 display all the details
+      if [[ -d "$git_dir/rebase-merge" || -d "$git_dir/rebase-apply" || -f "$g/MERGE_HEAD" || -f "$g/BISECT_LOG"  ]]; then
+			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+      else
+
+        # Fast version: display branch, dirtystate and upstream branch
         local color="${LEAN_PS1_GIT_DEFAULT_COLOR}"
         if [[ -n "$LEAN_PS1_SHOW_DIRTYSTATE" ]]; then
-            git diff --quiet && color=${LEAN_PS1_GIT_CLEAN_COLOR} || color=${PS1_DIRTY_COLOR}
+            color=${LEAN_PS1_GIT_CLEAN_COLOR}
+            git diff --quiet || color=${LEAN_PS1_GIT_DIRTY_COLOR}
+            git diff --staged --quiet || color=${LEAN_PS1_GIT_DIRTY_COLOR}
         fi
-        local git_info=" ${LEAN_PS1_GIT_CHAR} $git_branch"
+        [[ "$git_branch" == "HEAD" ]] && git_branch=$(git rev-parse --short HEAD 2>/dev/null)
+        local git_txt=" ${LEAN_PS1_GIT_CHAR} $git_branch"
         if [[ -n "${LEAN_PS1_SHOW_UPSTREAM}" ]]; then
           local upstream_branch=$(git rev-parse --abbrev-ref "@{upstream}" 2> /dev/null)
-          [[ -n "$upstream_branch" ]] && git_info="$git_info ➦ $upstream_branch"
+          [[ -n "$upstream_branch" ]] && git_txt="$git_txt ➦ $upstream_branch"
         fi
-        __pl_seg $color "$git_info"
+        __pl_seg $color "$git_txt"
+
+      fi
     fi
 
     # Finally the prompt
@@ -102,6 +120,7 @@ function __simple_set_prompt {
 }
 
 function __abbrev_cwd {
+  # Shorten all parts of CWD to 1 char except the final part
   local dir="\w"
   local dir=${dir@P}
   local IFS="/"
