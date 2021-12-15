@@ -79,7 +79,7 @@ function __simple_set_prompt {
       __pl_seg ${LEAN_PS1_CWD_COLOR} " \w " || __pl_seg ${LEAN_PS1_CWD_COLOR} " `__abbrev_cwd` "
     
     # GIT information
-    readarray -t git_info <<< `git rev-parse --git-dir --is-inside-git-dir --is-bare-repository --is-inside-work-tree --abbrev-ref HEAD`
+    readarray -t git_info <<< `git rev-parse --git-dir --is-inside-git-dir --is-bare-repository --is-inside-work-tree --abbrev-ref HEAD 2> /dev/null`
 
     local git_dir="${git_info[0]}"
     local git_inside_gd="${git_info[1]}"
