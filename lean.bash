@@ -1,12 +1,13 @@
-# Simple powerline prompt for bash, optimized for speed even under Windows 
+# Simple powerline prompt for bash, optimized for speed even under Windows
 # Licensed under MIT
 
 export PROMPT_COMMAND="__simple_set_prompt"
 
 # Configuration
 LEAN_PS1_SHOW_LONG_CWD=
-LEAN_PS1_SHOW_DIRTYSTATE=
-LEAN_PS1_SHOW_UPSTREAM=1
+LEAN_PS1_GIT_PS1=
+GIT_PS1_SHOWDIRTYSTATE=
+GIT_PS1_SHOWUPSTREAM=1
 
 LEAN_PS1_SEGMENT_CHAR=""
 LEAN_PS1_PROMPT_CHAR=""
@@ -51,7 +52,7 @@ function __simple_set_prompt {
     # Save exit code - must be first statement
     local ex=$?
 
-    # Save last segment color 
+    # Save last segment color
     local last_segment=''
 
     # Set terminal title
@@ -60,7 +61,7 @@ function __simple_set_prompt {
     # Exit code
     [[ "$ex" != 0 ]] &&
       __pl_seg R Bl "$ex " || __pl_seg G Bl "✓ "
-    
+
     # User information when not local
     [[ -n "${SSH_CLIENT}" ]] &&
        __pl_seg ${LEAN_PS1_USERINFO_COLOR} " \u@\h "
@@ -69,15 +70,15 @@ function __simple_set_prompt {
     [[ -n "${MSYSTEM}" ]] &&
     [[ "${MSYSTEM}" != "MINGW64" ]] &&
       __pl_seg ${LEAN_PS1_SYSTEM_COLOR} " ${MSYSTEM} "
-    
+
     # Python virtual environment
     [[ -n "${VIRTUAL_ENV_PROMPT}" ]] &&
       __pl_seg ${LEAN_PS1_VENV_COLOR} " ${VIRTUAL_ENV_PROMPT} "
-    
+
     # Current working directory
     [[ -n "${LEAN_PS1_SHOW_LONG_CWD}" ]] &&
       __pl_seg ${LEAN_PS1_CWD_COLOR} " \w " || __pl_seg ${LEAN_PS1_CWD_COLOR} " `__abbrev_cwd` "
-    
+
     # GIT information
     readarray -t git_info <<< `git rev-parse --git-dir --is-inside-git-dir --is-bare-repository --is-inside-work-tree --abbrev-ref HEAD 2> /dev/null`
 
@@ -87,9 +88,16 @@ function __simple_set_prompt {
     local git_inside_wt="${git_info[3]}"
     local git_branch="${git_info[4]}"
 
-	  if [[ "$git_inside_gd" == "true" ]]; then
+	  if [[ -n "$LEAN_PS1_GIT_PS1" ]]; then
+
+        # Use configured use of default __git_ps1 prompt
+			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+
+	  elif [[ "$git_inside_gd" == "true" ]]; then
+
         # GIT, but not inside worktree => Let __git_ps1 do the job
 			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+
 	  elif [[ "$git_inside_wt" == "true" ]]; then
 
       # Rebase or merge in progress, let __git_ps1 display all the details
@@ -99,14 +107,14 @@ function __simple_set_prompt {
 
         # Fast version: display branch, dirtystate and upstream branch
         local color="${LEAN_PS1_GIT_DEFAULT_COLOR}"
-        if [[ -n "$LEAN_PS1_SHOW_DIRTYSTATE" ]]; then
+        if [[ -n "$GIT_PS1_SHOWDIRTYSTATE" ]]; then
             color=${LEAN_PS1_GIT_CLEAN_COLOR}
             git diff --quiet || color=${LEAN_PS1_GIT_DIRTY_COLOR}
             git diff --staged --quiet || color=${LEAN_PS1_GIT_DIRTY_COLOR}
         fi
         [[ "$git_branch" == "HEAD" ]] && git_branch=$(git rev-parse --short HEAD 2>/dev/null)
         local git_txt=" ${LEAN_PS1_GIT_CHAR} $git_branch"
-        if [[ -n "${LEAN_PS1_SHOW_UPSTREAM}" ]]; then
+        if [[ -n "${GIT_PS1_SHOWUPSTREAM}" ]]; then
           local upstream_branch=$(git rev-parse --abbrev-ref "@{upstream}" 2> /dev/null)
           [[ -n "$upstream_branch" ]] && git_txt="$git_txt ➦ $upstream_branch"
         fi
