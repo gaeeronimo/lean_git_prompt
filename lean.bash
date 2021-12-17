@@ -1,10 +1,10 @@
 # Simple powerline prompt for bash, optimized for speed even under Windows
 # Licensed under MIT
 
-export PROMPT_COMMAND="__simple_set_prompt"
+export PROMPT_COMMAND="__lean_ps1"
 
 # Configuration
-LEAN_PS1_SHOW_LONG_CWD=
+LEAN_PS1_SHORTEN_CWD=1
 LEAN_PS1_GIT_PS1=
 GIT_PS1_SHOWDIRTYSTATE=
 GIT_PS1_SHOWUPSTREAM=1
@@ -47,7 +47,7 @@ function __pl_seg {
   last_segment=$bg
 }
 
-function __simple_set_prompt {
+function __lean_ps1 {
 
     # Save exit code - must be first statement
     local ex=$?
@@ -76,8 +76,8 @@ function __simple_set_prompt {
       __pl_seg ${LEAN_PS1_VENV_COLOR} " ${VIRTUAL_ENV_PROMPT} "
 
     # Current working directory
-    [[ -n "${LEAN_PS1_SHOW_LONG_CWD}" ]] &&
-      __pl_seg ${LEAN_PS1_CWD_COLOR} " \w " || __pl_seg ${LEAN_PS1_CWD_COLOR} " `__abbrev_cwd` "
+    [[ -n "${LEAN_PS1_SHORTEN_CWD}" ]] &&
+      __pl_seg ${LEAN_PS1_CWD_COLOR} " `__abbrev_cwd` " || __pl_seg ${LEAN_PS1_CWD_COLOR} " \w "
 
     # GIT information
     readarray -t git_info <<< `git rev-parse --git-dir --is-inside-git-dir --is-bare-repository --is-inside-work-tree --abbrev-ref HEAD 2> /dev/null`
