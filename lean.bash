@@ -4,6 +4,7 @@
 export PROMPT_COMMAND="__lean_ps1"
 
 # Configuration
+LEAN_PS1_VENV_SHOWNAME=
 LEAN_PS1_SHORTEN_CWD=1
 LEAN_PS1_GIT_PS1=
 [[ "$OSTYPE" == *linux* ]] && GIT_PS1_SHOWDIRTYSTATE=1 || GIT_PS1_SHOWDIRTYSTATE=
@@ -11,13 +12,14 @@ GIT_PS1_SHOWUPSTREAM=1
 
 LEAN_PS1_SEGMENT_CHAR=""
 LEAN_PS1_PROMPT_CHAR=""
+LEAN_PS1_PY_CHAR="🐍"
 LEAN_PS1_GIT_CHAR=""
 
 LEAN_PS1_USERINFO_COLOR="B W"
 LEAN_PS1_SYSTEM_COLOR="M Bl"
-LEAN_PS1_VENV_COLOR="C Bl"
-LEAN_PS1_CWD_COLOR="Y Bl"
-LEAN_PS1_GIT_DEFAULT_COLOR="B Bl"
+LEAN_PS1_VENV_COLOR="Bl W"
+LEAN_PS1_CWD_COLOR="B Bl"
+LEAN_PS1_GIT_DEFAULT_COLOR="C Bl"
 LEAN_PS1_GIT_CLEAN_COLOR="G Bl"
 LEAN_PS1_GIT_DIRTY_COLOR="R Bl"
 
@@ -72,8 +74,13 @@ function __lean_ps1 {
       __pl_seg ${LEAN_PS1_SYSTEM_COLOR} " ${MSYSTEM} "
 
     # Python virtual environment
-    [[ -n "${VIRTUAL_ENV_PROMPT}" ]] &&
-      __pl_seg ${LEAN_PS1_VENV_COLOR} " ${VIRTUAL_ENV_PROMPT} "
+    local venv_prompt="${VIRTUAL_ENV_PROMPT}"
+    [[ -z "${venv_prompt}" ]] && [[ -n "${VIRTUAL_ENV}" ]] && venv_prompt=`basename "${VIRTUAL_ENV}"`
+    if [[ -n "${venv_prompt}" ]]; then
+      [[ -n "${LEAN_PS1_VENV_SHOWNAME}" ]] && 
+        __pl_seg ${LEAN_PS1_VENV_COLOR} " ${LEAN_PS1_PY_CHAR} ${venv_prompt} " ||
+        __pl_seg ${LEAN_PS1_VENV_COLOR} " ${LEAN_PS1_PY_CHAR} "
+    fi
 
     # Current working directory
     [[ -n "${LEAN_PS1_SHORTEN_CWD}" ]] &&
