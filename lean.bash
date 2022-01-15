@@ -9,11 +9,14 @@ LEAN_PS1_SHORTEN_CWD=1
 LEAN_PS1_GIT_PS1=
 [[ "$OSTYPE" == *linux* ]] && GIT_PS1_SHOWDIRTYSTATE=1 || GIT_PS1_SHOWDIRTYSTATE=
 GIT_PS1_SHOWUPSTREAM=1
+[[ "$OSTYPE" == *linux* ]] && GIT_PS1_SHOWUPSTREAMSTATE=1 || GIT_PS1_SHOWUPSTREAMSTATE=
 
 LEAN_PS1_SEGMENT_CHAR=""
 LEAN_PS1_PROMPT_CHAR=""
 LEAN_PS1_PY_CHAR="🐍"
 LEAN_PS1_GIT_CHAR=""
+LEAN_PS1_GIT_AHEAD_CHAR="↑"
+LEAN_PS1_GIT_BEHIND_CHAR="↓"
 
 LEAN_PS1_USERINFO_COLOR="B W"
 LEAN_PS1_SYSTEM_COLOR="M Bl"
@@ -123,7 +126,15 @@ function __lean_ps1 {
         local git_txt=" ${LEAN_PS1_GIT_CHAR} $git_branch"
         if [[ -n "${GIT_PS1_SHOWUPSTREAM}" ]]; then
           local upstream_branch=$(git rev-parse --abbrev-ref "@{upstream}" 2> /dev/null)
-          [[ -n "$upstream_branch" ]] && git_txt="$git_txt ➦ $upstream_branch"
+          if [[ -n "$upstream_branch" ]]; then
+            git_txt="$git_txt ➦ $upstream_branch"
+            if [[ -n "$GIT_PS1_SHOWUPSTREAMSTATE" ]]; then
+              local ahead=$(git rev-list --left-right ${git_branch}...${upstream_branch} 2> /dev/null | grep -c "^<")
+              local behind=$(git rev-list --left-right ${git_branch}...${upstream_branch} 2> /dev/null | grep -c "^>")
+              [[ "$ahead" != 0 ]] && git_txt="$git_txt ${LEAN_PS1_GIT_AHEAD_CHAR}${ahead}"
+              [[ "$behind" != 0 ]] && git_txt="$git_txt ${GIT_PS1_GIT_BEHIND_CHAR}${behind}"
+            fi
+          fi
         fi
         __pl_seg $color "$git_txt"
 
