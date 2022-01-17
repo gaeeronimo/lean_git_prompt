@@ -11,20 +11,26 @@ LEAN_PS1_GIT_PS1=
 GIT_PS1_SHOWUPSTREAM=1
 [[ "$OSTYPE" == *linux* ]] && GIT_PS1_SHOWUPSTREAMSTATE=1 || GIT_PS1_SHOWUPSTREAMSTATE=
 
-LEAN_PS1_SEGMENT_CHAR=""
-LEAN_PS1_PROMPT_CHAR=""
-LEAN_PS1_PY_CHAR="🐍"
-LEAN_PS1_GIT_CHAR=""
-LEAN_PS1_GIT_AHEAD_CHAR="↑"
-LEAN_PS1_GIT_BEHIND_CHAR="↓"
+[[ "$OSTYPE" == *linux* ]] && [[ "$XDG_SESSION_TYPE" = *tty* ]] && LEAN_PS1_TTY_MODE=1
 
-LEAN_PS1_USERINFO_COLOR="B W"
-LEAN_PS1_SYSTEM_COLOR="M Bl"
-LEAN_PS1_VENV_COLOR="Bl W"
-LEAN_PS1_CWD_COLOR="B Bl"
-LEAN_PS1_GIT_DEFAULT_COLOR="C Bl"
-LEAN_PS1_GIT_CLEAN_COLOR="G Bl"
-LEAN_PS1_GIT_DIRTY_COLOR="R Bl"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_OKAY_CHAR="✓" || LEAN_PS1_OKAY_CHAR="0"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_SEGMENT_CHAR="" || LEAN_PS1_SEGMENT_CHAR=""
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_PROMPT_CHAR="" || LEAN_PS1_PROMPT_CHAR="$"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_PY_CHAR="🐍" || LEAN_PS1_PY_CHAR="~~*"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_CHAR="" || LEAN_PS1_GIT_CHAR="git:"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_UPSTREAM_CHAR="➦" || LEAN_PS1_GIT_UPSTREAM_CHAR="->"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_AHEAD_CHAR="↑" || LEAN_PS1_GIT_AHEAD_CHAR="^"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_BEHIND_CHAR="↓" || LEAN_PS1_GIT_BEHIND_CHAR="v"
+
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_OKAY_COLOR="G Bl" || LEAN_PS1_OKAY_COLOR="Bl G"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_ERROR_COLOR="R Bl" || LEAN_PS1_ERROR_COLOR="Bl R"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_USERINFO_COLOR="B W" || LEAN_PS1_USERINFO_COLOR="Bl B"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_SYSTEM_COLOR="M Bl" || LEAN_PS1_SYSTEM_COLOR="Bl M"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_VENV_COLOR="Bl W" || LEAN_PS1_VENV_COLOR="Bl W"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_CWD_COLOR="B Bl" || LEAN_PS1_CWD_COLOR="Bl W"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DEFAULT_COLOR="C Bl" || LEAN_PS1_GIT_DEFAULT_COLOR="Bl C"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_CLEAN_COLOR="G Bl" || LEAN_PS1_GIT_CLEAN_COLOR="Bl G"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DIRTY_COLOR="R Bl" || LEAN_PS1_GIT_DIRTY_COLOR="Bl R"
 
 # Declare colormaps for background and foreground colors
 declare -A COLMAP_BG=( [Bl]=40 [R]=41 [G]=42 [Y]=43 [B]=44 [M]=45 [C]=46 [W]=47 [_]=49 )
@@ -65,7 +71,7 @@ function __lean_ps1 {
 
     # Exit code
     [[ "$ex" != 0 ]] &&
-      __pl_seg R Bl "$ex " || __pl_seg G Bl "✓ "
+      __pl_seg $LEAN_PS1_ERROR_COLOR "$ex " || __pl_seg $LEAN_PS1_OKAY_COLOR "${LEAN_PS1_OKAY_CHAR} "
 
     # User information when not local
     [[ -n "${SSH_CLIENT}" ]] &&
@@ -127,7 +133,7 @@ function __lean_ps1 {
         if [[ -n "${GIT_PS1_SHOWUPSTREAM}" ]]; then
           local upstream_branch=$(git rev-parse --abbrev-ref "@{upstream}" 2> /dev/null)
           if [[ -n "$upstream_branch" ]]; then
-            git_txt="$git_txt ➦ $upstream_branch"
+            git_txt="$git_txt ${LEAN_PS1_GIT_UPSTREAM_CHAR} $upstream_branch"
             if [[ -n "$GIT_PS1_SHOWUPSTREAMSTATE" ]]; then
               local ahead=$(git rev-list --left-right ${git_branch}...${upstream_branch} 2> /dev/null | grep -c "^<")
               local behind=$(git rev-list --left-right ${git_branch}...${upstream_branch} 2> /dev/null | grep -c "^>")
