@@ -19,6 +19,9 @@ GIT_PS1_SHOWUPSTREAM=1
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_PY_CHAR="🐍" || LEAN_PS1_PY_CHAR="~~*"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_CHAR="" || LEAN_PS1_GIT_CHAR="git:"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_UPSTREAM_CHAR="➦" || LEAN_PS1_GIT_UPSTREAM_CHAR="->"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DIRTY_CHAR="≠" || LEAN_PS1_GIT_DIRTY_CHAR="*"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_STAGED_CHAR="±" || LEAN_PS1_GIT_STAGED_CHAR="±"
+
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_AHEAD_CHAR="↑" || LEAN_PS1_GIT_AHEAD_CHAR="^"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_BEHIND_CHAR="↓" || LEAN_PS1_GIT_BEHIND_CHAR="v"
 
@@ -31,6 +34,7 @@ GIT_PS1_SHOWUPSTREAM=1
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DEFAULT_COLOR="C Bl" || LEAN_PS1_GIT_DEFAULT_COLOR="Bl C"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_CLEAN_COLOR="G Bl" || LEAN_PS1_GIT_CLEAN_COLOR="Bl G"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DIRTY_COLOR="R Bl" || LEAN_PS1_GIT_DIRTY_COLOR="Bl R"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_STAGED_COLOR="Y Bl" || LEAN_PS1_GIT_STAGED_COLOR="Bl Y"
 
 # Declare colormaps for background and foreground colors
 declare -A COLMAP_BG=( [Bl]=40 [R]=41 [G]=42 [Y]=43 [B]=44 [M]=45 [C]=46 [W]=47 [_]=49 )
@@ -123,13 +127,23 @@ function __lean_ps1 {
 
         # Fast version: display branch, dirtystate and upstream branch
         local color="${LEAN_PS1_GIT_DEFAULT_COLOR}"
+        local dirty_marker=""
+        local staged_marker=""
+
         if [[ -n "$GIT_PS1_SHOWDIRTYSTATE" ]]; then
             color=${LEAN_PS1_GIT_CLEAN_COLOR}
-            git diff --quiet || color=${LEAN_PS1_GIT_DIRTY_COLOR}
-            git diff --staged --quiet || color=${LEAN_PS1_GIT_DIRTY_COLOR}
+            if ! git diff --staged --quiet; then
+              color=${LEAN_PS1_GIT_STAGED_COLOR}
+              staged_marker=" ${LEAN_PS1_GIT_STAGED_CHAR}"
+            fi
+            if ! git diff --quiet; then
+              color=${LEAN_PS1_GIT_DIRTY_COLOR}
+              dirty_marker="${LEAN_PS1_GIT_DIRTY_CHAR} "
+            fi
         fi
+
         [[ "$git_branch" == "HEAD" ]] && git_branch=$(git rev-parse --short HEAD 2>/dev/null)
-        local git_txt=" ${LEAN_PS1_GIT_CHAR} $git_branch"
+        local git_txt=" ${LEAN_PS1_GIT_CHAR} ${dirty_marker}${git_branch}${staged_marker}"
         if [[ -n "${GIT_PS1_SHOWUPSTREAM}" ]]; then
           local upstream_branch=$(git rev-parse --abbrev-ref "@{upstream}" 2> /dev/null)
           if [[ -n "$upstream_branch" ]]; then
@@ -138,7 +152,7 @@ function __lean_ps1 {
               local ahead=$(git rev-list --left-right ${git_branch}...${upstream_branch} 2> /dev/null | grep -c "^<")
               local behind=$(git rev-list --left-right ${git_branch}...${upstream_branch} 2> /dev/null | grep -c "^>")
               [[ "$ahead" != 0 ]] && git_txt="$git_txt ${LEAN_PS1_GIT_AHEAD_CHAR}${ahead}"
-              [[ "$behind" != 0 ]] && git_txt="$git_txt ${GIT_PS1_GIT_BEHIND_CHAR}${behind}"
+              [[ "$behind" != 0 ]] && git_txt="$git_txt ${LEAN_PS1_GIT_BEHIND_CHAR}${behind}"
             fi
           fi
         fi
