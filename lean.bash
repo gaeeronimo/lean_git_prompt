@@ -27,7 +27,7 @@ GIT_PS1_SHOWUPSTREAM=1
 
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_OKAY_COLOR="G Bl" || LEAN_PS1_OKAY_COLOR="Bl G"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_ERROR_COLOR="R Bl" || LEAN_PS1_ERROR_COLOR="Bl R"
-[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_USERINFO_COLOR="B W" || LEAN_PS1_USERINFO_COLOR="Bl B"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_USERINFO_COLOR="M Bl" || LEAN_PS1_USERINFO_COLOR="Bl B"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_SYSTEM_COLOR="M Bl" || LEAN_PS1_SYSTEM_COLOR="Bl M"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_VENV_COLOR="Bl W" || LEAN_PS1_VENV_COLOR="Bl W"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_CWD_COLOR="B Bl" || LEAN_PS1_CWD_COLOR="Bl W"
@@ -108,21 +108,21 @@ function __lean_ps1 {
     local git_inside_wt="${git_info[3]}"
     local git_branch="${git_info[4]}"
 
-	  if [[ -n "$LEAN_PS1_GIT_PS1" ]]; then
+    if [[ -n "$LEAN_PS1_GIT_PS1" ]]; then
 
         # Use configured use of default __git_ps1 prompt
-			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+        __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
 
-	  elif [[ "$git_inside_gd" == "true" ]]; then
+    elif [[ "$git_inside_gd" == "true" ]]; then
 
         # GIT, but not inside worktree => Let __git_ps1 do the job
-			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+        __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
 
-	  elif [[ "$git_inside_wt" == "true" ]]; then
+    elif [[ "$git_inside_wt" == "true" ]]; then
 
       # Rebase or merge in progress, let __git_ps1 display all the details
       if [[ -d "$git_dir/rebase-merge" || -d "$git_dir/rebase-apply" || -f "$g/MERGE_HEAD" || -f "$g/BISECT_LOG"  ]]; then
-			  __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
+        __pl_seg $LEAN_PS1_GIT_DEFAULT_COLOR "$(__git_ps1)"
       else
 
         # Fast version: display branch, dirtystate and upstream branch
