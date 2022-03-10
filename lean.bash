@@ -81,6 +81,10 @@ function __lean_ps1 {
     [[ -n "${SSH_CLIENT}" ]] &&
        __pl_seg ${LEAN_PS1_USERINFO_COLOR} " \u@\h "
 
+    # Debian chroot
+    [[ -n "${debian_chroot}" ]] &&
+       __pl_seg ${LEAN_PS1_SYSTEM_COLOR} " ${debian_chroot} "
+
     # Show $MSYSTEM when not default
     [[ -n "${MSYSTEM}" ]] &&
     [[ "${MSYSTEM}" != "MINGW64" ]] &&
