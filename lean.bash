@@ -5,7 +5,8 @@ export PROMPT_COMMAND="__lean_ps1"
 
 # Configuration
 LEAN_PS1_VENV_SHOWNAME=
-LEAN_PS1_SHORTEN_CWD=1
+LEAN_PS1_VENV_SHOWVERSION=1
+LEAN_PS1_SHORTEN_CWD=3
 LEAN_PS1_GIT_PS1=
 [[ "$OSTYPE" == *linux* ]] && GIT_PS1_SHOWDIRTYSTATE=1 || GIT_PS1_SHOWDIRTYSTATE=
 GIT_PS1_SHOWUPSTREAM=1
@@ -16,9 +17,10 @@ GIT_PS1_SHOWUPSTREAM=1
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_OKAY_CHAR="✓" || LEAN_PS1_OKAY_CHAR="0"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_SEGMENT_CHAR="" || LEAN_PS1_SEGMENT_CHAR=""
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_PROMPT_CHAR="" || LEAN_PS1_PROMPT_CHAR="$"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_CWD_CHAR="  " || LEAN_PS1_CWD_CHAR="/"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_PY_CHAR="🐍" || LEAN_PS1_PY_CHAR="~~*"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_CHAR="" || LEAN_PS1_GIT_CHAR="git:"
-[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_UPSTREAM_CHAR="➦" || LEAN_PS1_GIT_UPSTREAM_CHAR="->"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_UPSTREAM_CHAR="->" || LEAN_PS1_GIT_UPSTREAM_CHAR="->"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DIRTY_CHAR="≠" || LEAN_PS1_GIT_DIRTY_CHAR="*"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_STAGED_CHAR="±" || LEAN_PS1_GIT_STAGED_CHAR="±"
 
@@ -30,11 +32,12 @@ GIT_PS1_SHOWUPSTREAM=1
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_USERINFO_COLOR="M Bl" || LEAN_PS1_USERINFO_COLOR="Bl B"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_SYSTEM_COLOR="M Bl" || LEAN_PS1_SYSTEM_COLOR="Bl M"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_VENV_COLOR="Bl W" || LEAN_PS1_VENV_COLOR="Bl W"
-[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_CWD_COLOR="B Bl" || LEAN_PS1_CWD_COLOR="Bl W"
+[[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_CWD_COLOR="B W" || LEAN_PS1_CWD_COLOR="Bl W"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DEFAULT_COLOR="C Bl" || LEAN_PS1_GIT_DEFAULT_COLOR="Bl C"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_CLEAN_COLOR="G Bl" || LEAN_PS1_GIT_CLEAN_COLOR="Bl G"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_DIRTY_COLOR="R Bl" || LEAN_PS1_GIT_DIRTY_COLOR="Bl R"
 [[ -z $LEAN_PS1_TTY_MODE ]] && LEAN_PS1_GIT_STAGED_COLOR="Y Bl" || LEAN_PS1_GIT_STAGED_COLOR="Bl Y"
+
 
 # Declare colormaps for background and foreground colors
 declare -A COLMAP_BG=( [Bl]=40 [R]=41 [G]=42 [Y]=43 [B]=44 [M]=45 [C]=46 [W]=47 [_]=49 )
@@ -92,11 +95,13 @@ function __lean_ps1 {
 
     # Python virtual environment
     local venv_prompt="${VIRTUAL_ENV_PROMPT}"
+    local venv_version=""
     [[ -z "${venv_prompt}" ]] && [[ -n "${VIRTUAL_ENV}" ]] && venv_prompt=`basename "${VIRTUAL_ENV}"`
     if [[ -n "${venv_prompt}" ]]; then
-      [[ -n "${LEAN_PS1_VENV_SHOWNAME}" ]] && 
-        __pl_seg ${LEAN_PS1_VENV_COLOR} " ${LEAN_PS1_PY_CHAR} ${venv_prompt} " ||
-        __pl_seg ${LEAN_PS1_VENV_COLOR} " ${LEAN_PS1_PY_CHAR} "
+      [[ -n "${LEAN_PS1_VENV_SHOWVERSION}" ]] && venv_version=`python -V | cut -f 2 -d " "`
+      [[ -n "${LEAN_PS1_VENV_SHOWNAME}" ]] &&
+        __pl_seg ${LEAN_PS1_VENV_COLOR} " ${LEAN_PS1_PY_CHAR} ${venv_prompt} ${venv_version} " ||
+        __pl_seg ${LEAN_PS1_VENV_COLOR} " ${LEAN_PS1_PY_CHAR} ${venv_version} "
     fi
 
     # Current working directory
@@ -177,7 +182,7 @@ function __abbrev_cwd {
   local prev=''
   [[ "${dir:0:1}" == "/" ]] && echo -n "/"
   for part in $dir; do
-    [[ -n "$prev" ]] && echo -n "${prev:0:1}/"
+    [[ -n "$prev" ]] && echo -n "${prev:0:$LEAN_PS1_SHORTEN_CWD}${LEAN_PS1_CWD_CHAR}"
     prev="$part"
   done
   echo "$prev"
